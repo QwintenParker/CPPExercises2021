@@ -9,3 +9,7 @@ cv::Mat invertImageColors(cv::Mat image);
 cv::Mat addBackgroundInsteadOfBlackPixels(cv::Mat object, cv::Mat background);
 
 cv::Mat addBackgroundInsteadOfBlackPixelsLargeBackground(cv::Mat object, cv::Mat largeBackground);
+
+cv::Mat addNUnicornRandom(cv::Mat object, cv::Mat background);
+
+cv::Mat addStretchedUnicorn(cv::Mat object, cv::Mat background);

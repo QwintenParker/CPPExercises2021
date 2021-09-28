@@ -1,5 +1,5 @@
 #include "helper_functions.h"
-
+#include "random"
 #include <libutils/rasserts.h>
 #include <iostream>
 
@@ -62,7 +62,20 @@ cv::Mat addBackgroundInsteadOfBlackPixels(cv::Mat object, cv::Mat background) {
     // т.е. что-то вроде накладного фона получится
 
     // гарантируется что размеры картинок совпадают - проверьте это через rassert, вот например сверка ширины:
-    rassert(object.cols == background.cols, 341241251251351);
+    //rassert(object.rows == background.rows, 341241251251351);
+
+    cv::Vec3b color = object.at<cv::Vec3b>(13, 5);
+    unsigned char blue = color[0];
+    unsigned char green = color[1];
+    unsigned char red = color[2];
+
+    for (int i = 0; i < object.cols; ++i) {
+        for (int j = 0; j < object.rows; ++j) {
+            cv::Vec3b color1 = object.at<cv::Vec3b>(j, i);
+            if (color1 == cv::Vec3b(blue, green, red))
+                object.at<cv::Vec3b>(j, i) = background.at<cv::Vec3b>(j, i);
+        }
+    }
 
     return object;
 }
@@ -71,6 +84,68 @@ cv::Mat addBackgroundInsteadOfBlackPixelsLargeBackground(cv::Mat object, cv::Mat
     // теперь вам гарантируется что largeBackground гораздо больше - добавьте проверок этого инварианта (rassert-ов)
 
     // TODO реализуйте функцию так, чтобы нарисовался объект ровно по центру на данном фоне, при этом черные пиксели объекта не должны быть нарисованы
+    cv::Vec3b color = object.at<cv::Vec3b>(13, 5);
+    unsigned char blue = color[0];
+    unsigned char green = color[1];
+    unsigned char red = color[2];
+
+    int centerWidth = (int) ((largeBackground.cols - object.cols) / 2);
+    int centerHeight = (int) ((largeBackground.rows - object.rows) / 2);
+
+    for (int i = centerWidth; i < centerWidth + object.cols; ++i) {
+        for (int j = centerHeight; j < centerHeight + object.rows; ++j) {
+            cv::Vec3b color1 = object.at<cv::Vec3b>(j - centerHeight, i - centerWidth);
+            if (color1 != cv::Vec3b(blue, green, red))
+                largeBackground.at<cv::Vec3b>(j, i) = object.at<cv::Vec3b>(j - centerHeight, i - centerWidth);
+        }
+    }
+
 
     return largeBackground;
 }
+
+cv::Mat addNUnicornRandom(cv::Mat object, cv::Mat background) {
+    cv::Vec3b color = object.at<cv::Vec3b>(13, 5);
+    unsigned char blue = color[0];
+    unsigned char green = color[1];
+    unsigned char red = color[2];
+
+    srand((unsigned)time(0));
+    int n;
+    n = (rand()%100);
+    std::cout << "n:" << n  << std::endl;
+
+    for (int l = 0; l < n; ++l) {
+        int w = (rand()%1173);
+        int h = (rand()%490);
+        for (int i = w; i < w + object.cols; ++i) {
+            for (int j = h; j < h + object.rows; ++j) {
+                cv::Vec3b color1 = object.at<cv::Vec3b>(j - h, i - w);
+                if (color1 != cv::Vec3b(blue, green, red))
+                    background.at<cv::Vec3b>(j, i) = object.at<cv::Vec3b>(j - h, i - w);
+            }
+        }
+    }
+
+    return background;
+}
+
+cv::Mat addStretchedUnicorn(cv::Mat object, cv::Mat background) {
+    cv::Vec3b color = object.at<cv::Vec3b>(13, 5);
+    unsigned char blue = color[0];
+    unsigned char green = color[1];
+    unsigned char red = color[2];
+
+
+
+    //for (int i = 0; i < object.cols; ++i) {
+    //    for (int j = 0; j < object.rows; ++j) {
+    //        cv::Vec3b color1 = object.at<cv::Vec3b>(j, i);
+    //        if (color1 != cv::Vec3b(blue, green, red))
+    //            background.at<cv::Vec3b>(j, i) = object.at<cv::Vec3b>(j, i);
+    //    }
+    //}
+//
+    return object;
+}
+
