@@ -12,11 +12,11 @@ cv::Mat makeAllBlackPixelsBlue(cv::Mat image) {
     // всего их диапазон значений - от 0 до 255 включительно
     // т.е. один байт, поэтому мы используем ниже тип unsigned char - целое однобайтовое неотрицательное число
 
-    cv::Vec3b color = image.at<cv::Vec3b>(13, 5); // взяли и узнали что за цвет в пикселе в 14-ом ряду (т.к. индексация с нуля) и 6-ой колонке
-    unsigned char blue = color[0]; // если это число равно 255 - в пикселе много синего, если равно 0 - в пикселе нет синего
-    unsigned char green = color[1];
-    unsigned char red = color[2];
-
+    //cv::Vec3b color = image.at<cv::Vec3b>(13, 5); // взяли и узнали что за цвет в пикселе в 14-ом ряду (т.к. индексация с нуля) и 6-ой колонке
+    //unsigned char blue = color[0]; // если это число равно 255 - в пикселе много синего, если равно 0 - в пикселе нет синего
+    //unsigned char green = color[1];
+    //unsigned char red = color[2];
+//
     // как получить белый цвет? как получить черный цвет? как получить желтый цвет?
     // поэкспериментируйте! например можете всю картинку заполнить каким-то одним цветом
 
@@ -29,8 +29,8 @@ cv::Mat makeAllBlackPixelsBlue(cv::Mat image) {
     for (int i = 0; i < image.cols; ++i) {
         for (int j = 0; j < image.rows; ++j) {
             cv::Vec3b color1 = image.at<cv::Vec3b>(j, i);
-            if (color1 == cv::Vec3b(blue, green, red))
-                image.at<cv::Vec3b>(j, i) = cv::Vec3b(255, 0, 0);
+            if (color1 == cv::Vec3b(0, 0, 0))
+                image.at<cv::Vec3b>(j, i) = cv::Vec3b(0, 255, 0);
         }
     }
 
@@ -64,15 +64,15 @@ cv::Mat addBackgroundInsteadOfBlackPixels(cv::Mat object, cv::Mat background) {
     // гарантируется что размеры картинок совпадают - проверьте это через rassert, вот например сверка ширины:
     //rassert(object.rows == background.rows, 341241251251351);
 
-    cv::Vec3b color = object.at<cv::Vec3b>(13, 5);
-    unsigned char blue = color[0];
-    unsigned char green = color[1];
-    unsigned char red = color[2];
+    //cv::Vec3b color = object.at<cv::Vec3b>(13, 5);
+    //unsigned char blue = color[0];
+    //unsigned char green = color[1];
+    //unsigned char red = color[2];
 
     for (int i = 0; i < object.cols; ++i) {
         for (int j = 0; j < object.rows; ++j) {
             cv::Vec3b color1 = object.at<cv::Vec3b>(j, i);
-            if (color1 == cv::Vec3b(blue, green, red))
+            if (color1 == cv::Vec3b(0, 0, 0))
                 object.at<cv::Vec3b>(j, i) = background.at<cv::Vec3b>(j, i);
         }
     }
@@ -84,10 +84,10 @@ cv::Mat addBackgroundInsteadOfBlackPixelsLargeBackground(cv::Mat object, cv::Mat
     // теперь вам гарантируется что largeBackground гораздо больше - добавьте проверок этого инварианта (rassert-ов)
 
     // TODO реализуйте функцию так, чтобы нарисовался объект ровно по центру на данном фоне, при этом черные пиксели объекта не должны быть нарисованы
-    cv::Vec3b color = object.at<cv::Vec3b>(13, 5);
-    unsigned char blue = color[0];
-    unsigned char green = color[1];
-    unsigned char red = color[2];
+    //cv::Vec3b color = object.at<cv::Vec3b>(13, 5);
+    //unsigned char blue = color[0];
+    //unsigned char green = color[1];
+    //unsigned char red = color[2];
 
     int centerWidth = (int) ((largeBackground.cols - object.cols) / 2);
     int centerHeight = (int) ((largeBackground.rows - object.rows) / 2);
@@ -95,7 +95,7 @@ cv::Mat addBackgroundInsteadOfBlackPixelsLargeBackground(cv::Mat object, cv::Mat
     for (int i = centerWidth; i < centerWidth + object.cols; ++i) {
         for (int j = centerHeight; j < centerHeight + object.rows; ++j) {
             cv::Vec3b color1 = object.at<cv::Vec3b>(j - centerHeight, i - centerWidth);
-            if (color1 != cv::Vec3b(blue, green, red))
+            if (color1 != cv::Vec3b(0, 0, 0))
                 largeBackground.at<cv::Vec3b>(j, i) = object.at<cv::Vec3b>(j - centerHeight, i - centerWidth);
         }
     }
@@ -105,10 +105,10 @@ cv::Mat addBackgroundInsteadOfBlackPixelsLargeBackground(cv::Mat object, cv::Mat
 }
 
 cv::Mat addNUnicornRandom(cv::Mat object, cv::Mat background) {
-    cv::Vec3b color = object.at<cv::Vec3b>(13, 5);
-    unsigned char blue = color[0];
-    unsigned char green = color[1];
-    unsigned char red = color[2];
+    //cv::Vec3b color = object.at<cv::Vec3b>(13, 5);
+    //unsigned char blue = color[0];
+    //unsigned char green = color[1];
+    //unsigned char red = color[2];
 
     srand((unsigned)time(0));
     int n;
@@ -121,7 +121,7 @@ cv::Mat addNUnicornRandom(cv::Mat object, cv::Mat background) {
         for (int i = w; i < w + object.cols; ++i) {
             for (int j = h; j < h + object.rows; ++j) {
                 cv::Vec3b color1 = object.at<cv::Vec3b>(j - h, i - w);
-                if (color1 != cv::Vec3b(blue, green, red))
+                if (color1 != cv::Vec3b(0, 0, 0))
                     background.at<cv::Vec3b>(j, i) = object.at<cv::Vec3b>(j - h, i - w);
             }
         }
@@ -131,21 +131,26 @@ cv::Mat addNUnicornRandom(cv::Mat object, cv::Mat background) {
 }
 
 cv::Mat addStretchedUnicorn(cv::Mat object, cv::Mat background) {
-    cv::Vec3b color = object.at<cv::Vec3b>(13, 5);
-    unsigned char blue = color[0];
-    unsigned char green = color[1];
-    unsigned char red = color[2];
+
+    cv::Mat newUnicorn(591, 1274, CV_8UC3, cv::Scalar(0, 0, 0));
+
+    for (int i = 0; i < newUnicorn.cols; ++i) {
+        for (int j = 0; j < newUnicorn.rows; ++j) {
+            int x = j * 1.0 /newUnicorn.rows * object.rows;
+            int y = i * 1.0 /newUnicorn.cols * object.cols;
+            newUnicorn.at<cv::Vec3b>(j, i) = object.at<cv::Vec3b>(x, y);
+        }
+    }
+
+    for (int i = 0; i < newUnicorn.cols; ++i) {
+        for (int j = 0; j < newUnicorn.rows; ++j) {
+            cv::Vec3b color1 = newUnicorn.at<cv::Vec3b>(j, i);
+            if (color1 != cv::Vec3b(0, 0, 0))
+                background.at<cv::Vec3b>(j, i) = newUnicorn.at<cv::Vec3b>(j, i);
+        }
+    }
 
 
-
-    //for (int i = 0; i < object.cols; ++i) {
-    //    for (int j = 0; j < object.rows; ++j) {
-    //        cv::Vec3b color1 = object.at<cv::Vec3b>(j, i);
-    //        if (color1 != cv::Vec3b(blue, green, red))
-    //            background.at<cv::Vec3b>(j, i) = object.at<cv::Vec3b>(j, i);
-    //    }
-    //}
-//
-    return object;
+    return background;
 }
 

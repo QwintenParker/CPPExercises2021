@@ -60,9 +60,9 @@ int main() {
         }
     }
 
-    std::vector<double> xs = solveSquare(0.0, 4.0, -6.0);
+    std::vector<double> xs = solveSquare(1.0, 4.0, -6.0);
     std::cout << xs.size() << std::endl;
-    std::cout << xs[0] << ", " << xs[1] << ", " << xs[2] << std::endl;
+    std::cout << xs[0] << ", " << xs[1] << std::endl;
 
     return 0;
 }

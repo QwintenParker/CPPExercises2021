@@ -76,7 +76,6 @@ void task2() {
 
         // кроме сохранения картинок на диск (что часто гораздо удобнее конечно, т.к. между ними легко переключаться)
         // иногда удобно рисовать картинку в окне:
-        cv::resizeWindow("lesson03 window", 100, 100);
         cv::imshow("lesson03 window", imgUnicorn);
 
         // TODO сделайте функцию которая будет все черные пиксели (фон) заменять на случайный цвет (аккуратно, будет хаотично и ярко мигать, не делайте если вам это противопоказано)
@@ -105,6 +104,9 @@ struct MyVideoContent {
     cv::Mat frame;
     int lastClickX;
     int lastClickY;
+    std::vector<std::vector<int>> pixelsClicked;
+    bool mouseRClicked = false;
+    cv::Vec3b colorFrame;
 };
 
 void onMouseClick(int event, int x, int y, int flags, void *pointerToMyVideoContent) {
@@ -116,6 +118,16 @@ void onMouseClick(int event, int x, int y, int flags, void *pointerToMyVideoCont
 
     if (event == cv::EVENT_LBUTTONDOWN) { // если нажата левая кнопка мыши
         std::cout << "Left click at x=" << x << ", y=" << y << std::endl;
+        std::vector<int> coordinates;
+        coordinates.push_back(x);
+        coordinates.push_back(y);
+        content.pixelsClicked.push_back(coordinates);
+
+        content.colorFrame = content.frame.at<cv::Vec3b>(y, x);
+    }
+
+    if (event == cv::EVENT_RBUTTONDOWN) {
+        content.mouseRClicked = !content.mouseRClicked;
     }
 }
 
@@ -143,10 +155,21 @@ void task3() {
         rassert(isSuccess, 348792347819); // проверяем что считывание прошло успешно
         rassert(!content.frame.empty(), 3452314124643); // проверяем что кадр не пустой
 
+        for (int i = 0; i < content.pixelsClicked.size(); ++i) {
+            content.frame.at<cv::Vec3b>(content.pixelsClicked[i][1], content.pixelsClicked[i][0]) = cv::Vec3b(0, 0, 255);
+        }
+
+        if (content.mouseRClicked) {
+            content.frame = invertImageColors(content.frame);
+        }
+
         cv::imshow("video", content.frame); // покаызваем очередной кадр в окошке
         cv::setMouseCallback("video", onMouseClick, &content); // делаем так чтобы функция выше (onMouseClick) получала оповещение при каждом клике мышкой
 
         int key = cv::waitKey(10);
+        if (key == 32 || key == 27)
+            break;
+
         // TODO добавьте завершение программы в случае если нажат пробел
         // TODO добавьте завершение программы в случае если нажат Escape (придумайте как нагуглить)
 
@@ -167,14 +190,42 @@ void task4() {
     // TODO подумайте, а как бы отмаскировать фон целиком несмотря на то что он разноцветный?
     // а как бы вы справились с тем чтобы из фотографии с единорогом и фоном удалить фон зная как выглядит фон?
     // а может сделать тот же трюк с вебкой - выйти из вебки в момент запуска программы, и первый кадр использовать как кадр-эталон с фоном который надо удалять (делать прозрачным)
+
+    cv::VideoCapture video(0);
+
+    rassert(video.isOpened(), 3423948392481); // проверяем что видео получилось открыть
+
+    MyVideoContent content;
+
+    while (video.isOpened()) { // пока видео не закрылось - бежим по нему
+        bool isSuccess = video.read(content.frame); // считываем из видео очередной кадр
+        rassert(isSuccess, 348792347819); // проверяем что считывание прошло успешно
+        rassert(!content.frame.empty(), 3452314124643); // проверяем что кадр не пустой
+
+        for (int i = 0; i < content.pixelsClicked.size(); ++i) {
+            content.frame.at<cv::Vec3b>(content.pixelsClicked[i][1], content.pixelsClicked[i][0]) = cv::Vec3b(0, 0, 255);
+        }
+
+        if (content.mouseRClicked) {
+            content.frame = invertImageColors(content.frame);
+        }
+
+        cv::imshow("video", content.frame); // покаызваем очередной кадр в окошке
+        cv::setMouseCallback("video", onMouseClick, &content); // делаем так чтобы функция выше (onMouseClick) получала оповещение при каждом клике мышкой
+
+        int key = cv::waitKey(10);
+        if (key == 32 || key == 27)
+            break;
+
+    }
 }
 
 int main() {
     try {
-        //task1();
-        task2();
+//        task1();
+//        task2();
 //        task3();
-//        task4();
+  //      task4();
         return 0;
     } catch (const std::exception &e) {
         std::cout << "Exception! " << e.what() << std::endl;
