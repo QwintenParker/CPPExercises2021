@@ -224,8 +224,8 @@ int main() {
     try {
 //        task1();
 //        task2();
-//        task3();
-  //      task4();
+        task3();
+//        task4();
         return 0;
     } catch (const std::exception &e) {
         std::cout << "Exception! " << e.what() << std::endl;
