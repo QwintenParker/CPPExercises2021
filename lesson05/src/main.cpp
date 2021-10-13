@@ -11,8 +11,13 @@ void testBGRToGray() {
     cv::Mat img = cv::imread("lesson05/data/" + name + ".jpg");
     rassert(!img.empty(), 23981920813);
 
+    std::string resultsDir = "lesson05/resultsData/";
+    if (!std::filesystem::exists(resultsDir)) {
+        std::filesystem::create_directory(resultsDir);
+    }
+
     // TODO реализуйте эту функцию, преобразующую картинку в черно-белую
-    cv::Mat gray = convertBGRToGray(img);
+    cv::Mat gray = convertBGRToGray(img.clone());
 
     // TODO и удостоверьтесь что результат выглядит так как вы ожидаете, если нет - спросите меня
     cv::imwrite("lesson05/resultsData/" + name + "_grey.jpg", gray);
@@ -21,10 +26,14 @@ void testBGRToGray() {
 void testSobel(const std::string &name) {
     cv::Mat img = cv::imread("lesson05/data/" + name + ".jpg");
     rassert(!img.empty(), 23981920813);
+    //rassert(img.type() == CV_8UC3, 2323);
 
     // TODO реализуйте функцию считающую применение оператора Собеля к картинке
     // т.е. посчитайте производную по x и по y (в каждом пикселе хранятся две эти производные)
-    cv::Mat dxy = sobelDXY(img); // обратите внимание что внутри ждут черно-белую картинку, значит нашу картинку надо перед Собелем преобразовать
+
+    cv::Mat dxy = sobelDXY(convertBGRToGray(img.clone())); // обратите внимание что внутри ждут черно-белую картинку, значит нашу картинку надо перед Собелем преобразовать
+    cv::imread("lesson05/resultsData/" + name + "_DXY.jpg", dxy);
+
 
     cv::Mat dx = convertDXYToDX(dxy); // TODO реализуйте функцию которая вытаскивает силу производной по x (ее абсолютное значение)
     // TODO и удостоверьтесь что результат выглядит так как вы ожидаете, если нет - спросите меня
