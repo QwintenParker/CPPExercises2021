@@ -49,8 +49,8 @@ cv::Mat sobelDXY(cv::Mat img) {
     // производную неприятно брать по трем каналам (по трем BGR-цветам),
     // поэтому переданная картинка должна быть черно-белой (оттенки серого)
     // удостоверимся в этом (32-битное вещественное число: 32F + всего 1 канал (channel): C1):
-    rassert(dxyImg.type() == CV_32FC2, 23781792319049);
-    //rassert(img.type() == CV_32FC1, 23781792319049);
+    //rassert(dxyImg.type() == CV_32FC2, 23781792319049);
+    rassert(img.type() == CV_32FC1, 23781792319049);
 
     // реализуйте оператор Собеля - заполните dxy
     // https://ru.wikipedia.org/wiki/%D0%9E%D0%BF%D0%B5%D1%80%D0%B0%D1%82%D0%BE%D1%80_%D0%A1%D0%BE%D0%B1%D0%B5%D0%BB%D1%8F
@@ -117,7 +117,18 @@ cv::Mat convertDXYToDX(cv::Mat img) {
 
 cv::Mat convertDXYToDY(cv::Mat img) {
     // TODO
-    cv::Mat dyImg;
+    int width = img.cols;
+    int height = img.rows;
+    cv::Mat dyImg(height, width, CV_32FC1);
+    for (int j = 0; j < height; ++j) {
+        for (int i = 0; i < width; ++i) {
+            cv::Vec2f dxy = img.at<cv::Vec2f>(j, i);
+
+            float y = std::abs(dxy[1]); // взяли абсолютное значение производной по оси y
+
+            dyImg.at<float>(j, i) = y;
+        }
+    }
     return dyImg;
 }
 
@@ -125,5 +136,24 @@ cv::Mat convertDXYToGradientLength(cv::Mat img) {
     // TODO реализуйте функцию которая считает силу градиента в каждом пикселе
     // точнее - его длину, ведь градиент - это вектор (двухмерный, ведь у него две компоненты), а у вектора всегда есть длина - sqrt(x^2+y^2)
     // TODO и удостоверьтесь что результат выглядит так как вы ожидаете, если нет - спросите меня
-    return img;
+
+    int width = img.cols;
+    int height = img.rows;
+    cv::Mat dxyImg(height, width, CV_32FC1);
+    for (int j = 0; j < height; ++j) {
+        for (int i = 0; i < width; ++i) {
+            cv::Vec2f dxy = img.at<cv::Vec2f>(j, i);
+
+            float x = std::abs(dxy[0]); // взяли абсолютное значение производной по оси x
+            float y = std::abs(dxy[1]); // взяли абсолютное значение производной по оси y
+
+            float leng = sqrt(x*x + y*y);
+
+            dxyImg.at<float>(j, i) = leng;
+        }
+    }
+
+
+
+    return dxyImg;
 }
