@@ -46,9 +46,27 @@ cv::Mat buildHough(cv::Mat sobel) {// единственный аргумент 
             for (int theta0 = 0; theta0 + 1 < max_theta; ++theta0) {
 
                 double theta0radians = toRadians(theta0);
+                double theta1radians = toRadians(theta0 + 1);
                 int r0 = (int) round(estimateR(x0, y0, theta0radians)); // оцениваем r0 и округляем его до целого числа
+                int r1 = (int) round(estimateR(x0, y0, theta1radians));
                 if (r0 < 0 || r0 >= max_r)
                     continue;
+
+                if (r1 < 0 || r1 >= max_r)
+                    continue;
+
+                int r_max = std::max(r1, r0);
+                int r_min = std::min(r1, r0);
+
+                double length =r_max - r_min;
+                double k = 1;
+
+                for (int r = r_min; r <= r_max; ++r) {
+                    accumulator.at<float>(r, theta0) += (strength * k);
+                    accumulator.at<float>(r, theta0 + 1) += strength * (1 - k);
+
+                    k -= 1.0 / length;
+                }
 
                 // TODO надо определить в какие пиксели i,j надо внести наш голос с учетом проблемы "Почему два экстремума?" обозначенной на странице:
                 // https://www.polarnick.com/blogs/239/2021/school239_11_2021_2022/2021/11/09/lesson9-hough2-interpolation-extremum-detection.html
@@ -82,14 +100,23 @@ std::vector<PolarLineExtremum> findLocalExtremums(cv::Mat houghSpace)
 
     std::vector<PolarLineExtremum> winners;
 
-    for (int theta = 0; theta < max_theta; ++theta) {
-        for (int r = 0; r < max_r; ++r) {
-            // TODO
-            // ...
-            // if (ok) {
-            //     PolarLineExtremum line(theta, r, votes);
-            //     winners.push_back(line);
-            // }
+    for (int theta = 1; theta < max_theta - 1; ++theta) {
+        for (int r = 1; r < max_r - 1; ++r) {
+
+            float localExtr = houghSpace.at<float>(r, theta);
+            bool ok = true;
+
+            for (int i = -1; i <= 1; ++i) {
+                for (int j = -1; j <= 1; ++j) {
+                    if (houghSpace.at<float>(r + j, theta + i) >= localExtr && (i != 0 && j !=0))
+                        ok = false;
+                }
+            }
+
+            if (ok) {
+                PolarLineExtremum line(theta, r, localExtr);
+                winners.push_back(line);
+            }
         }
     }
 
@@ -100,6 +127,16 @@ std::vector<PolarLineExtremum> filterStrongLines(std::vector<PolarLineExtremum> 
 {
     std::vector<PolarLineExtremum> strongLines;
 
+    PolarLineExtremum strongestLine(0, 0, 0);
+    for (int i = 0; i < allLines.size(); ++i) {
+        if (allLines[i].votes > strongestLine.theta)
+            strongestLine = allLines[i];
+    }
+
+    for (int i = 0; i < allLines.size(); ++i) {
+        if (allLines[i].votes >= strongestLine.theta * thresholdFromWinner)
+            strongLines.push_back(allLines[i]);
+    }
     // Эта функция по множеству всех найденных локальных экстремумов (прямых) находит самую популярную прямую
     // и возвращает только вектор из тех прямых, что не сильно ее хуже (набрали хотя бы thresholdFromWinner голосов от победителя, т.е. например половину)
 

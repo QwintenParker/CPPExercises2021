@@ -46,6 +46,8 @@ void test(std::string name) {
     // и довезти ее до ума
     cv::Mat hough = buildHough(sobel_strength);
 
+    cv::imwrite("lesson08/resultsData/" + name + "_1_2_houghSpace.png", hough);
+
     // но яркость иногда сильно больше чем 255
     // поэтому найдем максимальную яркость (max_accumulated) среди всей матрицы hough и после этого отнормируем всю картинку:
     float max_accumulated = 0.0f;
@@ -55,8 +57,17 @@ void test(std::string name) {
         }
     }
 
+    cv::Mat houghAcc(hough.rows, hough.cols, CV_32FC1);
+
+    for (int j = 0; j < houghAcc.rows; ++j) {
+        for (int i = 0; i < houghAcc.cols; ++i) {
+            float acc = hough.at<float>(j, i) * 255.0f / max_accumulated;
+            houghAcc.at<float>(j, i) = acc;
+        }
+    }
+
     // заменим каждый пиксель с яркости X на яркость X*255.0f/max_accumulated (т.е. уменьшим диапазон значений)
-    cv::imwrite("lesson08/resultsData/" + name + "_2_hough_normalized.png", hough*255.0f/max_accumulated);
+    cv::imwrite("lesson08/resultsData/" + name + "_2_hough_normalized.png", houghAcc);
 
 // TODO здесь может быть полезно сгладить пространство Хафа, см. комментарии на сайте - https://www.polarnick.com/blogs/239/2021/school239_11_2021_2022/2021/11/09/lesson9-hough2-interpolation-extremum-detection.html
 
@@ -64,8 +75,8 @@ void test(std::string name) {
     std::vector<PolarLineExtremum> lines = findLocalExtremums(hough);
 
 // TODO реализуйте фильтрацию прямых - нужно оставлять только те прямые, у кого много голосов (реализуйте функцию filterStrongLines(...) ):
-//    double thresholdFromWinner = 0.5; // хотим оставить только те прямые у кого не менее половины голосов по сравнению с самой популярной прямой
-//    lines = filterStrongLines(lines, thresholdFromWinner);
+    double thresholdFromWinner = 0.5; // хотим оставить только те прямые у кого не менее половины голосов по сравнению с самой популярной прямой
+    lines = filterStrongLines(lines, thresholdFromWinner);
 
     std::cout << "Found " << lines.size() << " extremums:" << std::endl;
     for (int i = 0; i < lines.size(); ++i) {
