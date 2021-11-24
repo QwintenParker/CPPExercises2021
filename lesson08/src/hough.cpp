@@ -129,12 +129,12 @@ std::vector<PolarLineExtremum> filterStrongLines(std::vector<PolarLineExtremum> 
 
     PolarLineExtremum strongestLine(0, 0, 0);
     for (int i = 0; i < allLines.size(); ++i) {
-        if (allLines[i].votes > strongestLine.theta)
+        if (allLines[i].votes > strongestLine.votes)
             strongestLine = allLines[i];
     }
 
     for (int i = 0; i < allLines.size(); ++i) {
-        if (allLines[i].votes >= strongestLine.theta * thresholdFromWinner)
+        if (allLines[i].votes >= (strongestLine.votes * thresholdFromWinner))
             strongLines.push_back(allLines[i]);
     }
     // Эта функция по множеству всех найденных локальных экстремумов (прямых) находит самую популярную прямую
