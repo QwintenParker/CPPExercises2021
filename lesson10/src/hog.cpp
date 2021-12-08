@@ -6,6 +6,8 @@
 
 #define _USE_MATH_DEFINES
 #include <math.h>
+#include <iostream>
+
 
 
 HoG buildHoG(cv::Mat grad_x, cv::Mat grad_y) {
@@ -38,16 +40,23 @@ HoG buildHoG(cv::Mat grad_x, cv::Mat grad_y) {
             float dy = grad_y.at<float>(j, i);
             float strength = sqrt(dx * dx + dy * dy);
             float direction = atan2(dy, dx);
+            //std::cout << strength << ", " << direction << std::endl;
 
             if (strength < 10) // пропускайте слабые градиенты, это нужно чтобы игнорировать артефакты сжатия в jpeg (например в line01.jpg пиксели не идеально белые/черные, есть небольшие отклонения)
                 continue;
 
             // TODO рассчитайте в какую корзину нужно внести голос
-            int bin = -1;
+            int bin = 0;
+            for (int k = 0; k < NBINS; ++k) {
+                if (hog[k] = 0)
+                    bin = k;
+            }
 
             rassert(bin >= 0, 3842934728039);
             rassert(bin < NBINS, 34729357289040);
             hog[bin] += strength;
+            bin++;
+            hog[bin] += direction;
         }
     }
 
@@ -81,10 +90,17 @@ HoG buildHoG(cv::Mat originalImg) {
 std::ostream &operator<<(std::ostream &os, const HoG &hog) {
     rassert(hog.size() == NBINS, 234728497230016);
 
+    int sum = 0;
+
+    for (int i = 0; i < NBINS; ++i) {
+        sum += hog[i];
+        ++i;
+    }
+
     // TODO
     os << "HoG[";
     for (int bin = 0; bin < NBINS; ++bin) {
-//        os << angleInDegrees << "=" << percentage << "%, ";
+        os << hog[bin+1] * (180/M_PI) << "=" << (hog[bin]/sum) * 100 << "%, ";
     }
     os << "]";
     return os;
