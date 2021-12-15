@@ -61,16 +61,16 @@ void test(std::string name, std::string k) {
 
     // TODO 01 выполните бинарный трешолдинг картинки, прочитайте документацию по функции cv::threshold и выберите значения аргументов
     cv::Mat binary;
-    cv::threshold(img, binary, 128, 255, cv::THRESH_BINARY);
+    cv::threshold(img, binary, 128, 255, cv::THRESH_BINARY_INV);
     cv::imwrite(out_path + "/02_binary_thresholding.jpg", binary);
 
     // TODO 02 выполните адаптивный бинарный трешолдинг картинки, прочитайте документацию по cv::adaptiveThreshold
-    cv::adaptiveThreshold(img, binary, 255, cv::ADAPTIVE_THRESH_MEAN_C, cv::THRESH_BINARY, 21, 34);
+    cv::adaptiveThreshold(img, binary, 255, cv::ADAPTIVE_THRESH_MEAN_C, cv::THRESH_BINARY_INV, 51, 10);
     cv::imwrite(out_path + "/03_adaptive_thresholding.jpg", binary);
 
     // TODO 03 чтобы буквы не разваливались на кусочки - морфологическое расширение (эрозия)
     cv::Mat binary_eroded;
-    cv::erode(binary, binary_eroded, cv::getStructuringElement(cv::MORPH_RECT, cv::Size(4, 4)));
+    cv::erode(binary, binary_eroded, cv::getStructuringElement(cv::MORPH_RECT, cv::Size(1, 1)));
     cv::imwrite(out_path + "/04_erode.jpg", binary_eroded);
 
     // TODO 03 заодно давайте посмотрим что делает морфологическое сужение (диляция)
@@ -84,7 +84,7 @@ void test(std::string name, std::string k) {
     // TODO 05
     std::vector<std::vector<cv::Point>> contoursPoints; // по сути это вектор, где каждый элемент - это одна связная компонента-контур,
                                                         // а что такое компонента-контур? это вектор из точек (из пикселей)
-    cv::findContours(binary, contoursPoints, cv::RETR_TREE, cv::CHAIN_APPROX_NONE); // TODO подумайте, какие нужны два последних параметра? прочитайте документацию, после реализации отрисовки контура - поиграйте с этими параметрами чтобы посмотреть как меняется результат
+    cv::findContours(binary, contoursPoints, cv::RETR_EXTERNAL, cv::CHAIN_APPROX_NONE); // TODO подумайте, какие нужны два последних параметра? прочитайте документацию, после реализации отрисовки контура - поиграйте с этими параметрами чтобы посмотреть как меняется результат
     std::cout << "Contours: " << contoursPoints.size() << std::endl;
     cv::Mat imageWithContoursPoints = drawContours(img.rows, img.cols, contoursPoints); // TODO 06 реализуйте функцию которая покажет вам как выглядят найденные контура
     cv::imwrite(out_path + "/06_contours_points.jpg", imageWithContoursPoints);
@@ -109,7 +109,7 @@ void test(std::string name, std::string k) {
         cv::Rect box = cv::boundingRect(points); // строим прямоугольник по всем пикселям контура (bounding box = бокс ограничивающий объект)
         cv::Scalar blackColor(0, 0, 0);
         // TODO прочитайте документацию cv::rectangle чтобы нарисовать прямоугольник box с толщиной 2 и черным цветом (обратите внимание какие есть поля у box)
-        cv::rectangle(imgWithBoxes, ???, ???, ???, ???);
+        cv::rectangle(imgWithBoxes, box.br(), box.tl(), blackColor, 2);
     }
     cv::imwrite(out_path + "/08_boxes.jpg", imgWithBoxes); // TODO если вдруг у вас в картинке странный результат
                                                            // например если нет прямоугольников - посмотрите в верхний левый пиксель - белый ли он?
@@ -129,15 +129,16 @@ int main() {
         test("alphabet", "3_gradient");
 
         // TODO 50: обязательно получите результат на других картинках - прямо в цикле все их обработайте:
-//        std::vector<std::string> names;
-//        names.push_back("alphabet");
-//        names.push_back("line");
-//        names.push_back("text");
-//        for (int i = 0; i < names.size(); ++i) {
-//            for (int j = 1; j <= 5; ++j) {
-//                test(names[i], std::to_string(j));
-//            }
-//        }
+        std::vector<std::string> names;
+        names.push_back("alphabet");
+        names.push_back("line");
+        names.push_back("text");
+
+        for (int i = 0; i < names.size(); ++i) {
+            for (int j = 1; j <= 5; ++j) {
+                test(names[i], std::to_string(j));
+            }
+        }
 
         //test("alphabet", "3_gradient");
 

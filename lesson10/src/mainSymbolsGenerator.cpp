@@ -13,24 +13,24 @@
 
 int randFont() {
     int fonts[] = {
-//            cv::FONT_HERSHEY_SIMPLEX,
-//            cv::FONT_HERSHEY_PLAIN,
-//            cv::FONT_HERSHEY_DUPLEX,
-//            cv::FONT_HERSHEY_COMPLEX,
-//            cv::FONT_HERSHEY_TRIPLEX,
+            cv::FONT_HERSHEY_SIMPLEX,
+            cv::FONT_HERSHEY_PLAIN,
+            cv::FONT_HERSHEY_DUPLEX,
+            cv::FONT_HERSHEY_COMPLEX,
+            cv::FONT_HERSHEY_TRIPLEX,
             cv::FONT_HERSHEY_COMPLEX_SMALL,
-//            cv::FONT_HERSHEY_SCRIPT_SIMPLEX,
-//            cv::FONT_HERSHEY_SCRIPT_COMPLEX,
+            cv::FONT_HERSHEY_SCRIPT_SIMPLEX,
+            cv::FONT_HERSHEY_SCRIPT_COMPLEX,
     };
     // Выбираем случайный шрифт из тех что есть в OpenCV
     int nfonts = (sizeof(fonts) / sizeof(int));
     int font = rand() % nfonts;
 
     // С вероятностью 20% делаем шрифт наклонным (italic)
-//    bool is_italic = ((rand() % 5) == 0);
-//    if  (is_italic) {
-//        font = font | cv::FONT_ITALIC;
-//    }
+    bool is_italic = ((rand() % 5) == 0);
+    if  (is_italic) {
+        font = font | cv::FONT_ITALIC;
+    }
 
     return font;
 }
@@ -74,8 +74,8 @@ cv::Mat generateImage(std::string text, int width=128, int height=128) {
     // (ведь при рисовании мы указываем координаты левого нижнего угла текста)
     int xLeft = (width / 2) - (textPixelSize.width / 2);
     int yBottom = (height / 2) + (textPixelSize.height / 2);
-    cv::Point coordsOfLeftBorromCorner(xLeft, yBottom);
-    cv::putText(img, text, coordsOfLeftBorromCorner, font, fontScale, color, thickness);
+    cv::Point coordsOfLeftBottomCorner(xLeft, yBottom);
+    cv::putText(img, text, coordsOfLeftBottomCorner, font, fontScale, color, thickness);
 
     return img;
 }

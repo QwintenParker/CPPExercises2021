@@ -46,17 +46,13 @@ HoG buildHoG(cv::Mat grad_x, cv::Mat grad_y) {
                 continue;
 
             // TODO рассчитайте в какую корзину нужно внести голос
-            int bin = 0;
-            for (int k = 0; k < NBINS; ++k) {
-                if (hog[k] = 0)
-                    bin = k;
-            }
+            int bin = (M_PI + direction) / (2 * M_PI) * 8;
+            if (bin == 8)
+                bin = 0;
 
             rassert(bin >= 0, 3842934728039);
             rassert(bin < NBINS, 34729357289040);
             hog[bin] += strength;
-            bin++;
-            hog[bin] += direction;
         }
     }
 
@@ -94,13 +90,12 @@ std::ostream &operator<<(std::ostream &os, const HoG &hog) {
 
     for (int i = 0; i < NBINS; ++i) {
         sum += hog[i];
-        ++i;
     }
 
     // TODO
     os << "HoG[";
     for (int bin = 0; bin < NBINS; ++bin) {
-        os << hog[bin+1] * (180/M_PI) << "=" << (hog[bin]/sum) * 100 << "%, ";
+        os << hog[bin] << "=" << (hog[bin]/sum) * 100 << "%, ";
     }
     os << "]";
     return os;
