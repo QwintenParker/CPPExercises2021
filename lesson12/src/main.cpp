@@ -62,11 +62,11 @@ void test1() {
     // создадим случайных точек не имеющих отношения к нашей искомой прямой (шумные точки)
     std::vector<cv::Point2f> randomPoints = generateRandomPoints(randomPointsN, fromX, toX, fromY, toY);
 
-//    std::cout << randomPoints.size() << " random points: ";
-//    for (int i = 0; i < randomPoints.size(); ++i) {
-//        std::cout << randomPoints[i] << ", ";
-//    }
-//    std::cout << std::endl;
+    std::cout << randomPoints.size() << " random points: ";
+    for (int i = 0; i < randomPoints.size(); ++i) {
+        std::cout << randomPoints[i] << ", ";
+    }
+    std::cout << std::endl;
 
     plotPoints(plot, randomPoints, plotScale, red);
     cv::imwrite(results + "test1_4random_points.png", plot);

@@ -24,6 +24,7 @@ public:
     std::vector<cv::Point2f> generatePoints(int n,
                                         double fromX, double toX,
                                         double gaussianNoiseSigma); // метод прямой генерирующий n точек неподалеку от прямой
+    double getDist(cv::Point2f);
 };
 
 Line fitLineFromTwoPoints(cv::Point2f a, cv::Point2f b);

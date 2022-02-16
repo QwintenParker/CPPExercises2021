@@ -111,16 +111,58 @@ Line fitLineFromTwoPoints(cv::Point2f a, cv::Point2f b)
     return Line(a1, b1, c);
 }
 
+double Line::getDist(cv::Point2f t) {
+    double s = fabs(t.x*a + t.y*b + c);
+    double q = sqrt(a*a + b*b);
+    return s/q;
+}
+
 Line fitLineFromNPoints(std::vector<cv::Point2f> points)
 {
     // TODO 05 реализуйте построение прямой по многим точкам (такое чтобы прямая как можно лучше учитывала все точки)
-    return Line(0.0, -1.0, 2.0);
+    double minDist = DBL_MAX;
+    Line endLine = fitLineFromTwoPoints(points[0], points[1]);
+    for (int i = 0; i < points.size(); i++) {
+        for (int j = 0; j < points.size(); j++) {
+            if (points[i] == points[j])
+                continue;
+            Line line = fitLineFromTwoPoints(points[i], points[j]);
+            double dist = 0;
+            for (auto & point : points) {
+                dist += line.getDist(point);
+            }
+            if(minDist > dist) {
+                minDist = dist;
+                endLine = line;
+            }
+        }
+    }
+
+    return endLine;
 }
 
 Line fitLineFromNNoisyPoints(std::vector<cv::Point2f> points)
 {
     // TODO 06 БОНУС - реализуйте построение прямой по многим точкам включающим нерелевантные (такое чтобы прямая как можно лучше учитывала НАИБОЛЬШЕЕ число точек)
-    return Line(0.0, -1.0, 2.0);
+    double minDist = DBL_MAX;
+    Line endLine = fitLineFromTwoPoints(points[0], points[1]);
+    for (int i = 0; i < points.size(); i++) {
+        for (int j = 0; j < points.size(); j++) {
+            if (points[i] == points[j])
+                continue;
+            Line line = fitLineFromTwoPoints(points[i], points[j]);
+            double dist = 0;
+            for (auto & point : points) {
+                dist += line.getDist(point);
+            }
+            if(minDist > dist) {
+                minDist = dist;
+                endLine = line;
+            }
+        }
+    }
+
+    return endLine;
 }
 
 std::vector<cv::Point2f> generateRandomPoints(int n,
