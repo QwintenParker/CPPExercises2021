@@ -2,6 +2,9 @@
 #include <sstream>
 #include <iostream>
 #include <stdexcept>
+#include <set>
+
+typedef long long ll;
 
 int debugPoint(int line) {
     if (line < 0)
@@ -16,9 +19,9 @@ int debugPoint(int line) {
 
 struct Edge {
     int u, v; // номера вершин которые это ребро соединяет
-    int w; // длина ребра (т.е. насколько длинный путь предстоит преодолеть переходя по этому ребру между вершинами)
+    ll w; // длина ребра (т.е. насколько длинный путь предстоит преодолеть переходя по этому ребру между вершинами)
 
-    Edge(int u, int v, int w) : u(u), v(v), w(w)
+    Edge(int u, int v, ll w) : u(u), v(v), w(w)
     {}
 };
 
@@ -36,7 +39,8 @@ void run() {
 
     std::vector<std::vector<Edge>> edges_by_vertex(nvertices);
     for (int i = 0; i < medges; ++i) {
-        int ai, bi, w;
+        int ai, bi;
+        ll w;
         std::cin >> ai >> bi >> w;
         rassert(ai >= 1 && ai <= nvertices, 23472894792020);
         rassert(bi >= 1 && bi <= nvertices, 23472894792021);
@@ -47,35 +51,56 @@ void run() {
         rassert(bi >= 0 && bi < nvertices, 3472897424025);
 
         Edge edgeAB(ai, bi, w);
-        edges_by_vertex[ai].push_back(edgeAB);
+        edges_by_vertex[ai].emplace_back(ai, bi, w);
 
-        edges_by_vertex[bi].push_back(Edge(bi, ai, w)); // а тут - обратное ребро, можно конструировать объект прямо в той же строчке где он и потребовался
+        edges_by_vertex[bi].emplace_back(bi, ai, w); // а тут - обратное ребро, можно конструировать объект прямо в той же строчке где он и потребовался
     }
 
     const int start = 0;
     const int finish = nvertices - 1;
 
-    const int INF = std::numeric_limits<int>::max();
+    const ll INF = std::numeric_limits<ll>::max();
 
-    std::vector<int> distances(nvertices, INF);
+    std::vector<ll> distances(nvertices, INF);
     // TODO ...
+    std::vector<int> previous(nvertices, -1);
+    std::set<std::pair<ll, int>> k;
+    distances[start] = 0;
+    previous[start] = start;
+    k.emplace(0, start);
 
-//    while (true) {
-//
-//    }
+    while (!k.empty()) {
+        auto g = *k.begin();
+        k.erase(*k.begin());
+        if (distances[g.second] != g.first)
+            continue;
+        for (auto n : edges_by_vertex[g.second]) {
+            if (distances[n.v] > g.first + n.w) {
+                distances[n.v] = g.first + n.w;
+                k.emplace(distances[n.v], n.v);
+                previous[n.v] = g.second;
+            }
+        }
+    }
 
-//    if (...) {
-//        ...
-//        for (...) {
-//            std::cout << (path[i] + 1) << " ";
-//        }
-//        std::cout << std::endl;
-//    } else {
-//        std::cout << -1 << std::endl;
-//    }
+    if (distances[finish] != INF) {
+        std::vector<int> path;
+        for (int i = finish; previous[i] != i; i = previous[i]) {
+            path.emplace_back(i + 1);
+        }
+        path.emplace_back(start + 1);
+        for (auto j = path.rbegin(); j != path.rend(); j++) {
+            std::cout << *j << " ";
+        }
+        std::cout << std::endl;
+    } else {
+        std::cout << -1 << std::endl;
+    }
 }
 
 int main() {
+    std::cin.tie();
+    std::ios_base::sync_with_stdio(false);
     try {
         run();
 
@@ -84,4 +109,5 @@ int main() {
         std::cout << "Exception! " << e.what() << std::endl;
         return 1;
     }
+    std::cout.flush();
 }
