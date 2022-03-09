@@ -4,7 +4,6 @@
 #include <stdexcept>
 #include <set>
 
-typedef long long ll;
 
 int debugPoint(int line) {
     if (line < 0)
@@ -19,9 +18,9 @@ int debugPoint(int line) {
 
 struct Edge {
     int u, v; // номера вершин которые это ребро соединяет
-    ll w; // длина ребра (т.е. насколько длинный путь предстоит преодолеть переходя по этому ребру между вершинами)
+    int w; // длина ребра (т.е. насколько длинный путь предстоит преодолеть переходя по этому ребру между вершинами)
 
-    Edge(int u, int v, ll w) : u(u), v(v), w(w)
+    Edge(int u, int v, int w) : u(u), v(v), w(w)
     {}
 };
 
@@ -40,7 +39,7 @@ void run() {
     std::vector<std::vector<Edge>> edges_by_vertex(nvertices);
     for (int i = 0; i < medges; ++i) {
         int ai, bi;
-        ll w;
+        int w;
         std::cin >> ai >> bi >> w;
         rassert(ai >= 1 && ai <= nvertices, 23472894792020);
         rassert(bi >= 1 && bi <= nvertices, 23472894792021);
@@ -59,12 +58,12 @@ void run() {
     const int start = 0;
     const int finish = nvertices - 1;
 
-    const ll INF = std::numeric_limits<ll>::max();
+    const int INF = std::numeric_limits<int>::max();
 
-    std::vector<ll> distances(nvertices, INF);
+    std::vector<int> distances(nvertices, INF);
     // TODO ...
     std::vector<int> previous(nvertices, -1);
-    std::set<std::pair<ll, int>> k;
+    std::set<std::pair<int, int>> k;
     distances[start] = 0;
     previous[start] = start;
     k.emplace(0, start);

@@ -30,8 +30,9 @@ int encodeVertex(int row, int column, int nrows, int ncolumns) {
 cv::Point2i decodeVertex(int vertexId, int nrows, int ncolumns) {
 
     // TODO: придумайте как найти номер строки и столбика пикселю по номеру вершины (просто поймите предыдущую функцию и эта функция не будет казаться сложной)
-    int row = -1;
-    int column = -1;
+    int row = vertexId / ncolumns;
+    int column = vertexId % ncolumns;
+
 
     // сверим что функция симметрично сработала:
     rassert(encodeVertex(row, column, nrows, ncolumns) == vertexId, 34782974923035);
@@ -47,7 +48,7 @@ void run(int mazeNumber) {
     rassert(maze.type() == CV_8UC3, 3447928472389020);
     std::cout << "Maze resolution: " << maze.cols << "x" << maze.rows << std::endl;
 
-    int nvertices = 0; // TODO
+    int nvertices = maze.cols * maze.rows; // TODO
 
     std::vector<std::vector<Edge>> edges_by_vertex(nvertices);
     for (int j = 0; j < maze.rows; ++j) {
@@ -58,6 +59,13 @@ void run(int mazeNumber) {
             unsigned char red = color[2];
 
             // TODO добавьте соотвтетсвующие этому пикселю ребра
+
+            auto ai = encodeVertex(i, j, maze.rows, maze.cols);
+
+            if (i > 0) {
+                cv::Vec3b color2 = maze.at<cv::Vec3b>(i-1, j);
+                edges_by_vertex[ai].emplace_back(ai, encodeVertex(i-1, j, maze.rows, maze.cols));
+            }
         }
     }
 
