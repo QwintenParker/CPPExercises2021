@@ -61,7 +61,6 @@ void run() {
     const int INF = std::numeric_limits<int>::max();
 
     std::vector<int> distances(nvertices, INF);
-    // TODO ...
     std::vector<int> previous(nvertices, -1);
     std::set<std::pair<int, int>> k;
     distances[start] = 0;
