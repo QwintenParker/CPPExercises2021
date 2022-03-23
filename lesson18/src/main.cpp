@@ -21,7 +21,25 @@ bool isPixelMasked(cv::Mat mask, int j, int i) {
     rassert(mask.type() == CV_8UC3, 2348732984792380019);
 
     // TODO проверьте белый ли пиксель
-    return false;
+    return mask.at<cv::Vec3b>(j, i) == cv::Vec3b(255, 255, 255);
+}
+
+double estimateQuality(cv::Mat mask, cv::Mat image, int j, int i, int ny, int nx, int height, int width){
+    double distance = 0;
+    for (int a = - height / 2; a <= height / 2; a++){
+        for (int b = - width / 2; b <= width / 2; b++){
+            if (j + a < 0 || j + a >= image.rows || i + b < 0 || i + b >= image.cols || ny + a < 0 || ny + a >= image.rows || nx + b < 0 || nx + b >= image.cols){
+                distance += 10000000;
+            } else if (isPixelMasked(mask, ny + a, nx + b)){
+                distance += 100000000000;
+            }
+            else {
+                cv::Vec3b d = image.at<cv::Vec3b>(j + a, i + b) - image.at<cv::Vec3b>(ny + a, nx + b);
+                distance += cv::norm(d);
+            }
+        }
+    }
+    return distance;
 }
 
 void run(int caseNumber, std::string caseName) {
@@ -34,7 +52,8 @@ void run(int caseNumber, std::string caseName) {
 
     // TODO напишите rassert сверяющий разрешение картинки и маски
     // TODO выведите в консоль это разрешение картинки
-    // std::cout << "Image resolution: " << ... << std::endl;
+    rassert(original.size == mask.size, 2222223489765);
+     std::cout << "Image resolution: " << original.size << std::endl;
 
     // создаем папку в которую будем сохранять результаты - lesson18/resultsData/ИМЯ_НАБОРА/
     std::string resultsDir = "lesson18/resultsData/";
@@ -55,6 +74,25 @@ void run(int caseNumber, std::string caseName) {
     // TODO посчитайте и выведите число отмаскированных пикселей (числом и в процентах) - в таком формате:
     // Number of masked pixels: 7899/544850 = 1%
 
+    int numberOfMasked = 0;
+    cv::Mat originalCleaned = original.clone();
+    for (int j = 0; j < original.rows; j++){
+        for (int i = 0; i < original.cols; i++){
+            if (isPixelMasked(mask, j, i)){
+                originalCleaned.at<cv::Vec3b>(j, i) = cv::Vec3b(255, 255, 255);
+                numberOfMasked++;
+            }
+        }
+    }
+    cv::imwrite(resultsDir + "2_original_cleaned.png", originalCleaned);
+
+    {
+        int numberOfPixels = original.cols * original.rows;
+        int percentage = numberOfMasked * 100 / numberOfPixels;
+        std::cout << "Number of masked pixels: " + std::to_string(numberOfMasked) + "/" + std::to_string(numberOfPixels) + " = " + std::to_string(percentage) + "%" + '\n';
+    }
+
+
     FastRandom random(32542341); // этот объект поможет вам генерировать случайные гипотезы
 
     // TODO 10 создайте картинку хранящую относительные смещения - откуда брать донора для заплатки, см. подсказки про то как с нею работать на сайте
@@ -65,32 +103,50 @@ void run(int caseNumber, std::string caseName) {
     // TODO 15 теперь давайте заменять значение относительного смещения на новой только если новая случайная гипотеза - лучше старой, добавьте оценку "насколько смещенный патч 5х5 похож на патч вокруг пикселя если их наложить"
     //
     // Ориентировочный псевдокод-подсказка получившегося алгоритма:
-    // cv::Mat shifts(...); // матрица хранящая смещения, изначально заполнена парами нулей
-    // cv::Mat image = original; // текущая картинка
-    // for (100 раз) {
-    //     for (пробегаем по всем пикселям j,i) {
-    //         if (если этот пиксель не отмаскирован)
-    //             continue; // пропускаем т.к. его менять не надо
-    //         cv::Vec2i dxy = смотрим какое сейчас смещение для этого пикселя в матрице смещения
-    //         int (nx, ny) = (i + dxy.x, j + dxy.y); // ЭТО НЕ КОРРЕКТНЫЙ КОД, но он иллюстрирует как рассчитать координаты пикселя-донора из которого мы хотим брать цвет
-    //         currentQuality = estimateQuality(image, j, i, ny, nx, 5, 5); // эта функция (создайте ее) считает насколько похож квадрат 5х5 приложенный центром к (i, j)
-    //                                                                                                                        на квадрат 5х5 приложенный центром к (nx, ny)
-    //
-    //         int (rx, ry) = random.... // создаем случайное смещение относительно нашего пикселя, воспользуйтесь функцией random.next(...);
-    //                                      (окрестность вокруг пикселя на который укажет смещение - не должна выходить за пределы картинки и не должна быть отмаскирована)
-    //         randomQuality = estimateQuality(image, j, i, j+ry, i+rx, 5, 5); // оцениваем насколько похоже будет если мы приложим эту случайную гипотезу которую только что выбрали
-    //
-    //         if (если новое качество случайной угадайки оказалось лучше старого) {
-    //             то сохраняем (rx,ry) в картинку смещений
-    //             и в текущем пикселе кладем цвет из пикселя на которого только что смотрели (цент окрестности по смещению)
-    //             (т.е. мы не весь патч сюда кладем, а только его центральный пиксель)
-    //         } else {
-    //             а что делать если новая случайная гипотеза хуже чем то что у нас уже есть?
-    //         }
-    //     }
-    //     не забываем сохранить на диск текущую картинку
-    //     а как численно оценить насколько уже хорошую картинку мы смогли построить? выведите в консоль это число
-    // }
+     cv::Mat shifts(original.rows, original.cols, CV_32SC2); // матрица хранящая смещения, изначально заполнена парами нулей
+     cv::Mat image = original; // текущая картинка
+     for (int j = 0; j < image.rows; j++) {
+         for (int i = 0; i < image.cols; i++) {
+             if (!isPixelMasked(mask, j, i))
+                 continue; // пропускаем т.к. его менять не надо
+             cv::Vec2i dxy = shifts.at<cv::Vec2i>(j, i);
+             cv::Point pointD = cv::Point(i + dxy[1], j + dxy[0]);
+ //            int (nx, ny) = (i + dxy.x, j + dxy.y); // ЭТО НЕ КОРРЕКТНЫЙ КОД, но он иллюстрирует как рассчитать координаты пикселя-донора из которого мы хотим брать цвет
+             double currentQuality = estimateQuality(mask, image, j, i, pointD.y, pointD.x, 5, 5); // эта функция (создайте ее) считает насколько похож квадрат 5х5 приложенный центром к (i, j)
+  //                                                                                                                          на квадрат 5х5 приложенный центром к (nx, ny)
+
+//             int (rx, ry) = random.... // создаем случайное смещение относительно нашего пикселя, воспользуйтесь функцией random.next(...);
+            // (окрестность вокруг пикселя на который укажет смещение - не должна выходить за пределы картинки и не должна быть отмаскирована)
+
+            cv::Point randomD;
+            bool goodP = false;
+            while (!goodP){
+                goodP = true;
+                randomD = cv::Point(random.next(3, image.rows - 2), random.next(3, image.cols - 2));
+                for (int a = - 5 / 2; a <= 5 / 2; a++){
+                    for (int b = - 5 / 2; b <= 5 / 2; b++){
+                        if (mask.at<cv::Vec3b>(randomD.y + a, randomD.x + b) == cv::Vec3b(255, 255, 255))
+                            goodP = false;
+                    }
+                }
+            }
+
+             double randomQuality = estimateQuality(mask, image, j, i, randomD.y, randomD.x, 5, 5); // оцениваем насколько похоже будет если мы приложим эту случайную гипотезу которую только что выбрали
+
+             int rx = i - randomD.x;
+             int ry = j - randomD.y;
+
+             if (randomQuality < currentQuality) {
+                 shifts.at<cv::Vec2i>(j, i) = (ry, rx);
+                 image.at<cv::Vec3b>(j, i) = image.at<cv::Vec3b>(randomD.y, randomD.x);
+                 //(т.е. мы не весь патч сюда кладем, а только его центральный пиксель)
+             } else {
+                 image.at<cv::Vec3b>(j, i) = image.at<cv::Vec3b>(pointD.y, pointD.x);
+             }
+         }
+         //не забываем сохранить на диск текущую картинку
+         //а как численно оценить насколько уже хорошую картинку мы смогли построить? выведите в консоль это число
+     }
 }
 
 
