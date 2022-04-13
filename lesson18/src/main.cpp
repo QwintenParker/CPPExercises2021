@@ -19,7 +19,7 @@ bool isPixelMasked(cv::Mat mask, int j, int i) {
     rassert(j >= 0 && j < mask.rows, 372489347280017);
     rassert(i >= 0 && i < mask.cols, 372489347280018);
     rassert(mask.type() == CV_8UC3, 2348732984792380019);
-    if (mask.at<cv::Vec3b>(i, j) == cv::Vec3b(255, 255, 255)){
+    if (mask.at<cv::Vec3b>(j, i) == cv::Vec3b(255, 255, 255)){
         return true;
     } else {
         return false;
@@ -34,12 +34,13 @@ int estimateQuality(cv::Mat image, int j, int i, int ny, int nx, int height, int
         for (int w = -width/2; w <= width/2; w++) {
             if (ny + h >= 0 && ny + h < image.rows && nx + w >= 0 && nx + w < image.cols) {
                 cv::Vec3b d = image.at<cv::Vec3b>(j + h, i + w) - image.at<cv::Vec3b>(ny + h, nx + w);
+                dist += cv::norm(d);
             } else {
                 return 10000000;
             }
         }
     }
-
+    return dist;
 }
 
 void run(int caseNumber, std::string caseName) {
@@ -49,7 +50,7 @@ void run(int caseNumber, std::string caseName) {
     cv::Mat mask = cv::imread("lesson18/data/" + std::to_string(caseNumber) + "_" + caseName + "/" + std::to_string(caseNumber) + "_mask.png");
     rassert(!original.empty(), 324789374290018);
     rassert(!mask.empty(), 378957298420019);
-    rassert(original.size = mask.size, 45725842658765);
+    rassert(original.size == mask.size, 45725842658765);
 
     // TODO напишите rassert сверяющий разрешение картинки и маски
     // TODO выведите в консоль это разрешение картинки
@@ -74,6 +75,8 @@ void run(int caseNumber, std::string caseName) {
     // TODO посчитайте и выведите число отмаскированных пикселей (числом и в процентах) - в таком формате:
     // Number of masked pixels: 7899/544850 = 1%
 
+
+    std::cout << "danger code started..." << std::endl;
     int numOfMaskedPix = 0;
     cv::Mat cleaned = original.clone();
     for (int j = 0; j < original.rows; j++) {
@@ -109,23 +112,40 @@ void run(int caseNumber, std::string caseName) {
                  //         int (nx, ny) = (i + dxy.x, j + dxy.y); // ЭТО НЕ КОРРЕКТНЫЙ КОД, но он иллюстрирует как рассчитать координаты пикселя-донора из которого мы хотим брать цвет
                  //         currentQuality = estimateQuality(image, j, i, ny, nx, 5, 5); // эта функция (создайте ее) считает насколько похож квадрат 5х5 приложенный центром к (i, j)
                  //                                                                                                                        на квадрат 5х5 приложенный центром к (nx, ny)
+              int currentQuality = estimateQuality(image, j, i, j + dxy[0], i + dxy[1], 5, 5);
+              int rx;
+              int ry;
+              bool t = true;
+              while (t) {
+                  rx = random.next(2, image.cols - 3);
+                  ry = random.next(2, image.rows - 3);
+                  if (!isPixelMasked(image, ry, rx))
+                      t = false;
+              }
+              int randomQuality = estimateQuality(image, j, i, j + ry, i + rx, 5, 5);
+              //eds
 
-                          //eds
+              if (randomQuality < currentQuality) {
+                  shifts.at<cv::Vec2i>(j, i)[0] = ry - j;
+                  shifts.at<cv::Vec2i>(j, i)[1] = rx - i;
+                  image.at<cv::Vec3b>(j, i) = image.at<cv::Vec3b>(ry, rx);
+              }
 
-                 //         int (rx, ry) = random.... // создаем случайное смещение относительно нашего пикселя, воспользуйтесь функцией random.next(...);
-                 //                                      (окрестность вокруг пикселя на который укажет смещение - не должна выходить за пределы картинки и не должна быть отмаскирована)
-                 //         randomQuality = estimateQuality(image, j, i, j+ry, i+rx, 5, 5); // оцениваем насколько похоже будет если мы приложим эту случайную гипотезу которую только что выбрали
-                 //
-                 //         if (если новое качество случайной угадайки оказалось лучше старого) {
-                 //             то сохраняем (rx,ry) в картинку смещений
-                 //             и в текущем пикселе кладем цвет из пикселя на которого только что смотрели (цент окрестности по смещению)
-                 //             (т.е. мы не весь патч сюда кладем, а только его центральный пиксель)
-                 //         } else {
-                 //             а что делать если новая случайная гипотеза хуже чем то что у нас уже есть?
-                 //         }
-             }
-             //     не забываем сохранить на диск текущую картинку
-             //     а как численно оценить насколько уже хорошую картинку мы смогли построить? выведите в консоль это число
+             //   int (rx, ry) = random.... // создаем случайное смещение относительно нашего пикселя, воспользуйтесь функцией random.next(...);
+             //                                (окрестность вокруг пикселя на который укажет смещение - не должна выходить за пределы картинки и не должна быть отмаскирована)
+             //   randomQuality = estimateQuality(image, j, i, j+ry, i+rx, 5, 5); // оцениваем насколько похоже будет если мы приложим эту случайную гипотезу которую только что выбрали
+             //
+             //   if (если новое качество случайной угадайки оказалось лучше старого) {
+             //       то сохраняем (rx,ry) в картинку смещений
+             //       и в текущем пикселе кладем цвет из пикселя на которого только что смотрели (цент окрестности по смещению)
+             //       (т.е. мы не весь патч сюда кладем, а только его центральный пиксель)
+             //   } else {
+             //       а что делать если новая случайная гипотеза хуже чем то что у нас уже есть?
+                }
+             //
+             //бываем сохранить на диск текущую картинку
+             // численно оценить насколько уже хорошую картинку мы смогли построить? выведите в консоль это число
+             cv::imwrite(resultsDir + "3_mask.png", image);
          }
      }
 }
